@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>CSV Plot</title>
+	<!-- Plotly.js library -->
+	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+	<!-- D3.js library -->
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body>
+	<!-- Select CSV file -->
+	<input type="file" id="fileInput">
+
+	<!-- Select columns to plot -->
+	<label for="xColumn0">X-axis Column 0:</label>
+	<select id="xColumn0"></select>
+
+	<label for="yColumn0">Y-axis Column 0:</label>
+	<select id="yColumn0"></select>
+
+	<label for="xColumn1">X-axis Column 1:</label>
+	<select id="xColumn1"></select>
+
+	<label for="yColumn1">Y-axis Column 1:</label>
+	<select id="yColumn1"></select>
+
+
+	<!-- Plot button -->
+	<button onclick="plot()">Plot</button>
+
+	<!-- Plot container -->
+	<center>
+		<div id="plot"></div>
+	</center>
+	
+
+	<script>
+		// Handle file input change
+		document.getElementById("fileInput").addEventListener("change", function(event) {
+			const file = event.target.files[0];
+			const reader = new FileReader();
+
+			reader.onload = function() {
+				// Parse CSV data
+				const data = d3.csvParse(reader.result);
+
+				// Populate column selection dropdowns
+				const columns = Object.keys(data[0]);
+				const xColumn0Select = document.getElementById("xColumn0");
+				const yColumn0Select = document.getElementById("yColumn0");
+				const xColumn1Select = document.getElementById("xColumn1");
+				const yColumn1Select = document.getElementById("yColumn1");
+
+				columns.forEach(function(column) {
+					const option0 = document.createElement("option");
+					option0.text = column;
+					xColumn0Select.add(option0);
+					
+					const option1 = document.createElement("option");
+					option1.text = column;
+					yColumn0Select.add(option1);
+
+					const option2 = document.createElement("option");
+					option2.text = column;
+					xColumn1Select.add(option2);
+					
+					const option3 = document.createElement("option");
+					option3.text = column;
+					yColumn1Select.add(option3);
+				});
+			};
+
+			reader.readAsText(file);
+		});
+
+		// Plot selected columns
+		function plot() {
+			const xColumn0 = document.getElementById("xColumn0").value;
+			const yColumn0 = document.getElementById("yColumn0").value;
+			const xColumn1 = document.getElementById("xColumn1").value;
+			const yColumn1 = document.getElementById("yColumn1").value;
+
+			// Get CSV data
+			const fileInput = document.getElementById("fileInput");
+			const file = fileInput.files[0];
+			const reader = new FileReader();
+
+			reader.onload = function() {
+				// Parse CSV data
+				const data = d3.csvParse(reader.result);
+
+				// Extract selected columns
+				const xData0 = data.map(function(d) { return d[xColumn0]; });
+				const yData0 = data.map(function(d) { return d[yColumn0]; });
+				const xData1 = data.map(function(d) { return d[xColumn1]; });
+				const yData1 = data.map(function(d) { return d[yColumn1]; });
+				
+				// Find max and mins for et the range of the axis
+				var xData0N = xData0.map(Number)
+				var yData0N = yData0.map(Number)
+				var xData1N = xData1.map(Number)
+				var yData1N = yData1.map(Number)
+				
+				
+				
+				var x0Min = Math.min.apply(null,xData0N);
+				var x0Max = Math.max.apply(null,xData0N);
+				var y0Min = Math.min.apply(null,yData0N);
+				var y0Max = Math.max.apply(null,yData0N);
+
+				var x1Min = Math.min.apply(null,xData1N);
+				var x1Max = Math.max.apply(null,xData1N);
+				var y1Min = Math.min.apply(null,yData1N);
+				var y1Max = Math.max.apply(null,yData1N);
+
+				var minAbsx = Math.min(x0Min,x1Min);
+				var minAbsy = Math.min(y0Min,y1Min);
+
+				var maxAbsx = Math.max(x0Max,x1Max);
+				var maxAbsy = Math.max(y0Max,y1Max);
+
+				var rangex = [];
+				var rangey = [];
+				console.log(x0Min);
+				
+				console.log(x0Max);
+				console.log('algo');
+				if ( maxAbsx < 1) {
+					rangex = [0,1];
+					rangey = [0,1];
+					
+				}else{
+					rangex = [minAbsx,maxAbsx];
+					rangey = [minAbsy,maxAbsy];
+				}
+					
+
+				// Create traces
+				const trace1 = {
+					x: xData0,
+					y: yData0,
+					mode: 'markers+lines',
+					line: {dash: 'dot'},
+					name: yColumn0,
+					type: 'scatter'
+				};
+				const trace2 = {
+					x: xData1,
+					y: yData1,
+					mode: 'markers+lines',
+					line: {dash: 'dot'},
+					name: yColumn1,
+					type: 'scatter+lines'
+				};
+				const plotData = [trace1, trace2];
+				const layout = {
+					title: `${yColumn1} and ${yColumn1} vs ${xColumn0} and ${xColumn1}`,
+				xaxis: {
+					title: `${xColumn1} and ${xColumn1}`,
+					range: rangex // set x-axis range
+				},
+				yaxis: {
+					title: `${yColumn1} and ${yColumn1}`,
+					range: rangey // set y-axis range
+				},
+				width: 800, // Set width of the figure in pixels
+				height: 600 // Set height of the figure in pixels
+			};
+
+			// Create plot
+			Plotly.newPlot('plot', plotData, layout);
+		};
+
+		reader.readAsText(file);
+	}
+</script>
+
